@@ -53,6 +53,8 @@ dw.backend.ready(function() {
                 {{ hook('visualize_before_resizer') }}
                 {{ hook('render_resize_control') }}
 
+                {{ svelte('snapshots') }}
+
                 <div id="notifications"></div>
             </div>
 

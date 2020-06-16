@@ -25,6 +25,7 @@ build('publish/pending-activation');
 build('describe');
 build('describe/hot', { noAMD: true });
 build('visualize');
+build('snapshots');
 
 export default targets;
 

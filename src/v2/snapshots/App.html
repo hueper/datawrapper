@@ -1,0 +1,101 @@
+<div class="chart-snapshots">
+    <ul class="unstyled">
+        <li>
+            <div>
+                snapshots
+                <button on:click="addSnapshot()" class="btn btn-small">add</button>
+            </div>
+            <div>
+                {#each snapshots as snapshot,i}
+                <button on:click="restoreSnapshot(i)" class="btn btn-small" class:btn-primary="current === i">{i+1}</button>
+                {/each}
+            </div>
+            <div>
+                {#if current > -1}
+                <button on:click="replaceSnapshot(current)" class="btn btn-small">update</button>
+                <button on:click="removeSnapshot(current)" class="btn btn-small">remove</button>
+                {/if}
+            </div>
+        </li>
+    </ul>
+</div>
+
+<script>
+    import clone from '@datawrapper/shared/clone';
+    /* globals chart */
+    export default {
+        data() {
+            return {
+                snapshots: [],
+                current: -1
+            };
+        },
+        computed: {},
+        helpers: {},
+        oncreate() {
+            // todo: load snapshots from local storage?
+            const backup = window.localStorage.getItem(`snapshots-${chart.get('id')}`);
+            if (backup) {
+                this.set({
+                    snapshots: JSON.parse(backup)
+                });
+                this.restoreSnapshot(0);
+            }
+        },
+        onupdate({ changed, current }) {
+            if (changed.snapshots) {
+                window.localStorage.setItem(`snapshots-${chart.get('id')}`, JSON.stringify(current.snapshots));
+            }
+        },
+        methods: {
+            getSnapshot() {
+                return {
+                    title: chart.get('title'),
+                    annotate: clone(chart.getMetadata('annotate')),
+                    describe: clone(chart.getMetadata('describe')),
+                    visualize: clone(chart.getMetadata('visualize')),
+                    axes: clone(chart.getMetadata('axes'))
+                };
+            },
+            setSnapshot(snapshot) {
+                console.log({ snapshot });
+                chart.set('title', snapshot.title);
+                chart.setMetadata('annotate', clone(snapshot.annotate));
+                chart.setMetadata('describe', clone(snapshot.describe));
+                chart.setMetadata('visualize', clone(snapshot.visualize));
+                chart.setMetadata('axes', clone(snapshot.axes));
+            },
+            addSnapshot() {
+                const { snapshots } = this.get();
+                snapshots.push(this.getSnapshot());
+                this.set({ snapshots, current: snapshots.length - 1 });
+            },
+            restoreSnapshot(i) {
+                const { snapshots } = this.get();
+                this.setSnapshot(snapshots[i]);
+                this.set({ current: i });
+            },
+            replaceSnapshot(i) {
+                const { snapshots } = this.get();
+                snapshots[i] = this.getSnapshot();
+                this.set({ snapshots });
+            },
+            removeSnapshot(i) {
+                const { snapshots } = this.get();
+                if (i > -1) {
+                    snapshots.splice(i, 1);
+                    this.set({ snapshots });
+                }
+            }
+        }
+    };
+</script>
+
+<style>
+    li {
+        display: flex;
+        justify-content: space-between;
+    }
+    li > div {
+    }
+</style>
